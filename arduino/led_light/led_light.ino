@@ -7,9 +7,9 @@
 
   Pin connections:
     Arduino:
-      9: Red
-      6: Green
-      5: Blue
+      3: Red
+      5: Green
+      6: Blue
       
   Revisions:
     V01: Initial version 2021/07/22
@@ -24,31 +24,43 @@
     Nothing.
   **************************************************************/
 
-#define BLUE  5
-#define GREEN 6
-#define RED   9
 
-const int delayTime= 100;
-const float brightness= 0.05;
+// for arduino Uno pin 
+#define RED   3
+#define GREEN 5
+#define BLUE  6
+
+#define BRT   8   // brightness change.
+#define BMAX  9   // brightness to max
+#define BMIN 10   // brightness to min
+const int delayTime= 1000;
+float brightness= 0.1;
 float r,g,b;
 
 // frequency factor
 float tr=5;
-float tg=11;
-float tb=31;
+float tg=7;
+float tb=11;
 
-// phase shift
+// phase shift factor
 float pr=0;
 float pg=0.6;
 float pb=1.2;
 
 float t=0;
 
+int f_pressed= HIGH;
+int f_direction=1;
+
 
 void setup() {
-  pinMode(RED, OUTPUT);
   pinMode(GREEN, OUTPUT);
   pinMode(BLUE, OUTPUT);
+  pinMode(RED, OUTPUT);
+  pinMode(BRT, INPUT_PULLUP);
+  pinMode(BMAX, INPUT_PULLUP);
+  pinMode(BMIN, INPUT_PULLUP);
+
   Serial.begin(115200);
 }
 
@@ -63,14 +75,33 @@ void loop() {
   r= r/v;
   g= g/v;
   b= b/v;
+  
   analogWrite(RED,   r * 255 * brightness);
   analogWrite(GREEN, g * 255 * brightness);
   analogWrite(BLUE,  b * 255 * brightness);
   
   t=t+0.001;
-  Serial.println(String(r) +"," + String(g) + "," + String(b));
 
-  delay(delayTime);
+  f_pressed=!digitalRead(BRT);
+  if(f_pressed){
+    //brightness= brightness+0.05*f_direction;
+    if(brightness >= 1){
+      f_direction= -1;
+    }else if(brightness<= 0.1){
+      f_direction= 1;
+    }
+    brightness= brightness+0.05*f_direction;
+  }
 
 
+  if(!digitalRead(BMAX)){
+    brightness=1.0;
+  }
+  
+  if(!digitalRead(BMIN)){
+    brightness=0.1;
+  }
+  
+  delay(delayTime);    
+  //Serial.println(String(r) +"," + String(g) + "," + String(b));
 }
